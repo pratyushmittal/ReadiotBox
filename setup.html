@@ -1,0 +1,26 @@
+<html ng-app="readiot">
+<head>
+    <title>ReadiotBox Setup</title>
+</head>
+<body ng-controller="SetupCtrl">
+
+    <h3>Step 1: Create app:</h3>
+    App Key: <input type="text" ng-model="key" ng-required="True" />
+    App Secret: <input type="text" ng-model="secret" ng-required="True" />
+    <input type="submit" ng-click="getCode()" value="Generate Token" />
+    {{ code_link }}
+
+    <h3>Step 2: Generate Token:</h3>
+    Token: <input type="text" ng-model="code" />
+    <input type="submit" ng-click="getToken()" value="Finish" />
+    {{ token_link }}
+
+    <h3>Step 3: Read</h3>
+    {{ token }}
+    {{ account_info }}
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+    <script type="text/javascript" src="dropbox.js"></script>
+    <script type="text/javascript" src="setupCtrl.js"></script>
+</body>
+</html>
