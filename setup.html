@@ -11,13 +11,18 @@
     {{ code_link }}
 
     <h3>Step 2: Generate Token:</h3>
-    Token: <input type="text" ng-model="code" />
+    Auth Code: <input type="text" ng-model="code" />
     <input type="submit" ng-click="getToken()" value="Finish" />
     {{ token_link }}
 
     <h3>Step 3: Read</h3>
     {{ token }}
     {{ account_info }}
+
+
+    <h4>Manual Debug</h4>
+    Token: <input type="text" ng-model="token" />
+    <input type="submit" ng-click="updateFiles()" value="Push updates" />
 
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
     <script type="text/javascript" src="dropbox.js"></script>

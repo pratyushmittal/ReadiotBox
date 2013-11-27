@@ -1,10 +1,13 @@
+/*global angular*/
 var app = angular.module("readiot", ['dropbox']);
 
 app.factory('Setup', function(Dropbox, $http){
     var setup = {};
     setup.put = function(source, token){
         var content = $http.get(source);
-        var destination = "static/" + source;
+        var name_pos = source.lastIndexOf("/") + 1;
+        var filename = source.substr(name_pos);
+        var destination = "static/" + filename;
         return Dropbox.writeFile(destination,
                                  content,
                                  undefined,
@@ -33,7 +36,10 @@ function SetupCtrl($scope, $http, Dropbox, Setup){
                "params": data}).then(function(response){
             $scope.token = response.data.access_token;
             $scope.uid = response.data.uid;
-            Setup.put('style.css', $scope.token);
+            $scope.updateFiles();
         });
+    };
+    $scope.updateFiles = function() {
+        Setup.put('style.css', $scope.token);
     };
 }
