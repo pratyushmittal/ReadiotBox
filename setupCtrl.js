@@ -4,14 +4,16 @@ var app = angular.module("readiot", ['dropbox']);
 app.factory('Setup', function(Dropbox, $http){
     var setup = {};
     setup.put = function(source, token){
-        var content = $http.get(source);
         var name_pos = source.lastIndexOf("/") + 1;
         var filename = source.substr(name_pos);
         var destination = "static/" + filename;
-        return Dropbox.writeFile(destination,
-                                 content,
-                                 undefined,
-                                 token);
+        $http.get(source).then(function(response) {
+            return Dropbox.writeFile(destination,
+                                     response,
+                                     undefined,
+                                     token);
+
+        });
     };
     return setup;
 });
@@ -41,5 +43,8 @@ function SetupCtrl($scope, $http, Dropbox, Setup){
     };
     $scope.updateFiles = function() {
         Setup.put('style.css', $scope.token);
+        Setup.put('parser.js', $scope.token);
+        Setup.put('dropbox.js', $scope.token);
+        Setup.put('bookmarklet.js', $scope.token);
     };
 }

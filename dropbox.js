@@ -247,7 +247,7 @@ angular.module('dropbox', [])
 
       writeFile: function (path, content, params, token) {
         if(token) {
-          this.oauth.access_token = token;
+          oauth.access_token = token;
         }
         return request({
           method: 'POST',
