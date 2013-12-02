@@ -7,7 +7,7 @@ angular.module('dropbox', [])
      * Credentials
      */
 
-    var oauth = {"access_token": "{{ TOKEN }}"};
+    var oauth = {"access_token": "[{ TOKEN }]"};
 
 
     /**

@@ -1,3 +1,5 @@
+/*global document, window */
+
 var dbg = (typeof console !== 'undefined') ? function(s) {
     console.log("Readability: " + s);
 } : function() {};
@@ -62,7 +64,7 @@ var readability = {
      **/
     init: function() {
         /* Before we do anything, remove all scripts that are not readability. */
-        window.onload = window.onunload = function() {};
+        window.onload = window.onunload = function(){return;};
 
         readability.removeScripts(document);
 
@@ -73,16 +75,12 @@ var readability = {
         /* Make sure this document is added to the list of parsed pages first, so we don't double up on the first page */
         readability.parsedPages[window.location.href.replace(/\/$/, '')] = true;
 
-        /* Pull out any possible next page link first */
-        var nextPageLink = readability.findNextPageLink(document.body);
 
         readability.prepDocument();
 
         /* Build readability's DOM tree */
-        var articleTools   = readability.getArticleTools();
         var articleTitle   = readability.getArticleTitle();
         var articleContent = readability.grabArticle();
-        var articleFooter  = readability.getArticleFooter();
 
         if(!articleContent) {
             articleContent    = document.createElement("DIV");
@@ -93,7 +91,6 @@ var readability = {
                 "<p>Also, please note that Readability does not play very nicely with front pages. Readability is intended to work on articles with a sizable chunk of text that you'd like to read comfortably. If you're using Readability on a landing page (like nytimes.com for example), please click into an article first before using Readability.</p>"
             ].join('');
 
-            nextPageLink = null;
         }
 
         readability.postProcessContent(articleContent);
@@ -110,7 +107,7 @@ var readability = {
 "<html ng-app='readiot'>" +
 "<head>" +
     "<title>" + articleTitle.innerHTML + "</title>" +
-    "<link href='{{ DB_PATH }}style.css' rel='stylesheet' type='text/css'>" +
+    "<link href='[{ STYLE }]' rel='stylesheet' type='text/css'>" +
     "<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1'>" +
 "</head>" +
 "<body>" +
@@ -132,12 +129,8 @@ var readability = {
         var head = document.getElementsByTagName('head')[0];
         var angular = readability.addScript("http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js");
         angular.onload = function() {
-            var dropbox = readability.addScript("{{ DB_PATH }}dropbox.js");
-            dropbox.onload = function() {
-                var controllers = readability.addScript("{{ DB_PATH }}read-control.js");
-                head.appendChild(controllers);
-            };
-            head.appendChild(dropbox);
+            var controllers = readability.addScript("[{ READJS }]");
+            head.appendChild(controllers);
         };
         head.appendChild(angular);
     },
@@ -172,8 +165,9 @@ var readability = {
         var imageWidthThreshold = Math.min(articleContent.offsetWidth, 800) * 0.55,
             images              = articleContent.getElementsByTagName('img');
 
-        for(var i=0, il = images.length; i < il; i+=1) {
-            var image = images[i];
+        var i, il, image;
+        for(i=0, il = images.length; i < il; i+=1) {
+            image = images[i];
 
             if(image.offsetWidth > imageWidthThreshold) {
                 image.className += " blockImage";
@@ -182,25 +176,10 @@ var readability = {
     },
 
     /**
-     * Get the article tools Element that has buttons like reload, print, email.
-     *
-     * @return void
-     **/
-    getArticleTools: function () {
-        var articleTools = document.createElement("DIV");
-
-        articleTools.id        = "readTools";
-        articleTools.innerHTML =
-            "<a href='#' onclick='return window.location.reload()' title='Reload original page' id='reload-page'>Reload Original Page</a>" +
-        "<a href='#' onclick='javascript:window.print();' title='Print page' id='print-page'>Print Page</a>";
-        return articleTools;
-    },
-
-    /**
      * retuns the suggested direction of the string
      *
      * @return "rtl" || "ltr"
-     **/
+    **/
     getSuggestedDirection: function(text) {
         function sanitizeText() {
             return text.replace(/@\w+/, "");
@@ -280,44 +259,11 @@ var readability = {
     },
 
     /**
-     * Get the footer with the readability mark etc.
-     *
-     * @return void
-     **/
-    getArticleFooter: function () {
-        var articleFooter = document.createElement("DIV");
-
-        /**
-         * For research purposes, generate an img src that contains the chosen readstyle etc,
-         * so we can generate aggregate stats and change styles based on them in the future
-         **/
-        // var statsQueryParams = "?readStyle=" + encodeURIComponent(readStyle) + "&readMargin=" + encodeURIComponent(readMargin) + "&readSize=" + encodeURIComponent(readSize);
-        /* TODO: attach this to an image */
-
-        articleFooter.id = "readFooter";
-        articleFooter.innerHTML = [
-        "<div id='rdb-footer-print'>Excerpted from <cite>" + document.title + "</cite><br />" + window.location.href + "</div>",
-        "<div id='rdb-footer-wrapper'>",
-             "<div id='rdb-footer-left'>",
-                 "<a href='http://lab.arc90.com/experiments/readability' id='readability-logo'>Readability &mdash;&nbsp;</a>",
-                 "<a href='http://www.arc90.com/' id='arc90-logo'> An Arc90 Laboratory Experiment&nbsp;</a>",
-                 " <span id='readability-url'> http://lab.arc90.com/experiments/readability</span>",
-             "</div>",
-             "<div id='rdb-footer-right'>",
-                 "<a href='http://www.twitter.com/arc90' class='footer-twitterLink'>Follow us on Twitter &raquo;</a>",
-                 "<span class='version'>Readability version " + readability.version + "</span>",
-             "</div>",
-        "</div>"].join('');
-
-        return articleFooter;
-    },
-
-    /**
      * Prepare the HTML document for readability to scrape it.
      * This includes things like stripping javascript, CSS, and handling terrible markup.
      *
      * @return void
-     **/
+    **/
     prepDocument: function () {
         /**
          * In some cases a body element can't be found (if the HTML is totally hosed for example)
@@ -963,175 +909,6 @@ var readability = {
 
         // This is our final, cleaned, base article URL.
         return window.location.protocol + "//" + window.location.host + cleanedSegments.reverse().join("/");
-    },
-
-    /**
-     * Look for any paging links that may occur within the document.
-     *
-     * @param body
-     * @return object (array)
-    **/
-    findNextPageLink: function (elem) {
-        var possiblePages = {},
-            allLinks = elem.getElementsByTagName('a'),
-            articleBaseUrl = readability.findBaseUrl();
-
-        /**
-         * Loop through all links, looking for hints that they may be next-page links.
-         * Things like having "page" in their textContent, className or id, or being a child
-         * of a node with a page-y className or id.
-         *
-         * Also possible: levenshtein distance? longest common subsequence?
-         *
-         * After we do that, assign each page a score, and
-        **/
-        for(var i = 0, il = allLinks.length; i < il; i+=1) {
-            var link     = allLinks[i],
-                linkHref = allLinks[i].href.replace(/#.*$/, '').replace(/\/$/, '');
-
-            /* If we've already seen this page, ignore it */
-            if(linkHref === "" || linkHref === articleBaseUrl || linkHref === window.location.href || linkHref in readability.parsedPages) {
-                continue;
-            }
-
-            /* If it's on a different domain, skip it. */
-            if(window.location.host !== linkHref.split(/\/+/g)[1]) {
-                continue;
-            }
-
-            var linkText = readability.getInnerText(link);
-
-            /* If the linkText looks like it's not the next page, skip it. */
-            if(linkText.match(readability.regexps.extraneous) || linkText.length > 25) {
-                continue;
-            }
-
-            /* If the leftovers of the URL after removing the base URL don't contain any digits, it's certainly not a next page link. */
-            var linkHrefLeftover = linkHref.replace(articleBaseUrl, '');
-            if(!linkHrefLeftover.match(/\d/)) {
-                continue;
-            }
-
-            if(!(linkHref in possiblePages)) {
-                possiblePages[linkHref] = {"score": 0, "linkText": linkText, "href": linkHref};
-            } else {
-                possiblePages[linkHref].linkText += ' | ' + linkText;
-            }
-
-            var linkObj = possiblePages[linkHref];
-
-            /**
-             * If the articleBaseUrl isn't part of this URL, penalize this link. It could still be the link, but the odds are lower.
-             * Example: http://www.actionscript.org/resources/articles/745/1/JavaScript-and-VBScript-Injection-in-ActionScript-3/Page1.html
-            **/
-            if(linkHref.indexOf(articleBaseUrl) !== 0) {
-                linkObj.score -= 25;
-            }
-
-            var linkData = linkText + ' ' + link.className + ' ' + link.id;
-            if(linkData.match(readability.regexps.nextLink)) {
-                linkObj.score += 50;
-            }
-            if(linkData.match(/pag(e|ing|inat)/i)) {
-                linkObj.score += 25;
-            }
-            if(linkData.match(/(first|last)/i)) { // -65 is enough to negate any bonuses gotten from a > or Â» in the text,
-                /* If we already matched on "next", last is probably fine. If we didn't, then it's bad. Penalize. */
-                if(!linkObj.linkText.match(readability.regexps.nextLink)) {
-                    linkObj.score -= 65;
-                }
-            }
-            if(linkData.match(readability.regexps.negative) || linkData.match(readability.regexps.extraneous)) {
-                linkObj.score -= 50;
-            }
-            if(linkData.match(readability.regexps.prevLink)) {
-                linkObj.score -= 200;
-            }
-
-            /* If a parentNode contains page or paging or paginat */
-            var parentNode = link.parentNode,
-                positiveNodeMatch = false,
-                negativeNodeMatch = false;
-            while(parentNode) {
-                var parentNodeClassAndId = parentNode.className + ' ' + parentNode.id;
-                if(!positiveNodeMatch && parentNodeClassAndId && parentNodeClassAndId.match(/pag(e|ing|inat)/i)) {
-                    positiveNodeMatch = true;
-                    linkObj.score += 25;
-                }
-                if(!negativeNodeMatch && parentNodeClassAndId && parentNodeClassAndId.match(readability.regexps.negative)) {
-                    /* If this is just something like "footer", give it a negative. If it's something like "body-and-footer", leave it be. */
-                    if(!parentNodeClassAndId.match(readability.regexps.positive)) {
-                        linkObj.score -= 25;
-                        negativeNodeMatch = true;
-                    }
-                }
-
-                parentNode = parentNode.parentNode;
-            }
-
-            /**
-             * If the URL looks like it has paging in it, add to the score.
-             * Things like /page/2/, /pagenum/2, ?p=3, ?page=11, ?pagination=34
-            **/
-            if (linkHref.match(/p(a|g|ag)?(e|ing|ination)?(=|\/)[0-9]{1,2}/i) || linkHref.match(/(page|paging)/i)) {
-                linkObj.score += 25;
-            }
-
-            /* If the URL contains negative values, give a slight decrease. */
-            if (linkHref.match(readability.regexps.extraneous)) {
-                linkObj.score -= 15;
-            }
-
-            /**
-             * Minor punishment to anything that doesn't match our current URL.
-             * NOTE: I'm finding this to cause more harm than good where something is exactly 50 points.
-             *       Dan, can you show me a counterexample where this is necessary?
-             * if (linkHref.indexOf(window.location.href) !== 0) {
-             *    linkObj.score -= 1;
-             * }
-            **/
-
-            /**
-             * If the link text can be parsed as a number, give it a minor bonus, with a slight
-             * bias towards lower numbered pages. This is so that pages that might not have 'next'
-             * in their text can still get scored, and sorted properly by score.
-            **/
-            var linkTextAsNumber = parseInt(linkText, 10);
-            if(linkTextAsNumber) {
-                // Punish 1 since we're either already there, or it's probably before what we want anyways.
-                if (linkTextAsNumber === 1) {
-                    linkObj.score -= 10;
-                }
-                else {
-                    // Todo: Describe this better
-                    linkObj.score += Math.max(0, 10 - linkTextAsNumber);
-                }
-            }
-        }
-
-        /**
-         * Loop thrugh all of our possible pages from above and find our top candidate for the next page URL.
-         * Require at least a score of 50, which is a relatively high confidence that this page is the next link.
-        **/
-        var topPage = null;
-        for(var page in possiblePages) {
-            if(possiblePages.hasOwnProperty(page)) {
-                if(possiblePages[page].score >= 50 && (!topPage || topPage.score < possiblePages[page].score)) {
-                    topPage = possiblePages[page];
-                }
-            }
-        }
-
-        if(topPage) {
-            var nextHref = topPage.href.replace(/\/$/,'');
-
-            dbg('NEXT PAGE IS ' + nextHref);
-            readability.parsedPages[nextHref] = true;
-            return nextHref;
-        }
-        else {
-            return null;
-        }
     },
 
     /**

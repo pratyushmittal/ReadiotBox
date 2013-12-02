@@ -1,1 +1,0 @@
-javascript:(function(){ _readability_script=document.createElement('script'); _readability_script.type='text/javascript'; _readability_script.src='{{ DB_PATH }}parser.js'; document.documentElement.appendChild(_readability_script); })(); 
