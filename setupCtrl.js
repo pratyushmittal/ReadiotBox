@@ -53,8 +53,9 @@ app.factory('DropAPI', function($http, $q){
         return api.authRequest(config, token);
     };
     api.getLink = function(path, token, params){
+        if (!params) { params = {short_url: false}; }
         var config = {method: "POST",
-                      url: urls.media + path,
+                      url: urls.shares + path,
                       params: params};
         return api.authRequest(config, token);
     };
@@ -67,7 +68,12 @@ app.factory('Setup', function(DropAPI, $http){
         var getLink = function(destination){
             return DropAPI.getLink(destination, token)
                           .then(function(response){
-                              return response.url;
+                              var url = response.url;
+                              url = url.replace(
+                                  "www.dropbox",
+                                  "dl.dropboxusercontent"
+                              );
+                              return url;
                           });
         };
         var parseContent = function(template){
