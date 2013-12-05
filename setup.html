@@ -1,32 +1,108 @@
 <html ng-app="readiot">
 <head>
     <title>ReadiotBox Setup</title>
+    <style>
+    @import url(https://fonts.googleapis.com/css?family=Cambo);
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        color: #222;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    h1, h2, h3, .logo {
+        font-family: 'Cambo', serif;
+        color: #333;
+    }
+
+    .container {
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 625px;
+    }
+
+    .logo {
+        padding: 0 19px;
+        margin-top: 7%;
+        font-weight: 700;
+        font-size: 500%;
+    }
+
+    input {
+        border: 1px solid #ccc;
+        padding: 5px;
+        width: 300px;
+    }
+    .button {
+        background: #3BAFDA;
+        border: none;
+        color: #fff;
+        font-size: 100%;
+        width: auto;
+    }
+    small a {
+        color: #aaa;
+        text-decoration: none;
+    }
+
+    hr {
+        width: 75px;
+        color: #ddd;
+        background-color: #ddd;
+        margin: 20px;
+    }
+    </style>
 </head>
 <body ng-controller="SetupCtrl">
 
-    <h3>Step 1: Create app:</h3>
-    App Key: <input type="text" ng-model="key" ng-required="True" />
-    App Secret: <input type="text" ng-model="secret" ng-required="True" />
-    <input type="submit" ng-click="getCode()" value="Generate Token" />
-    {{ code_link }}
+    <section class="container">
+        <div class="logo">Readiot Box</div>
+    </section>
 
-    <h3>Step 2: Generate Token:</h3>
-    Auth Code: <input type="text" ng-model="code" />
-    <input type="submit" ng-click="getToken()" value="Finish" />
-    {{ token_link }}
+    <section class="container" ng-show="!update">
 
-    <h3>Step 3: Read</h3>
-    {{ token }}
-    {{ account_info }}
+        <div class="status">{{message}}</div>
+
+        <h3>Step 1: Create a Dropbox app: <small><a href="https://www.dropbox.com/developers/apps/create">https://www.dropbox.com/developers/apps/create</a></small></h3>
+        <p>Dropbox API app >> Files and datastores >> (Private?) Yes</p>
+
+        <div>
+            App Key: <input type="text" ng-model="key" ng-required="True" />
+        </div>
+        <div>
+            App Secret: <input type="text" ng-model="secret" ng-required="True" />
+        </div>
+        <div>
+            <input class="button" type="submit" ng-click="getCode()" value="Generate Token" />
+        </div>
 
 
-    <h4>Manual Debug</h4>
-    <h3>{{ message }}</h3>
-    Token: <input type="text" ng-model="token" />
-    <input type="submit" ng-click="updateFiles()" value="Push updates" />
+        <hr />
 
-    Bookmarklet: <input type="text" ng-model="bookmarklet" />
-    <input type="submit" ng-click="updateApp()" value="Push updates" />
+        <h3>Step 2: Generate Token:</h3>
+
+        <p ng-show="code_link"><a href="{{code_link}}">Click to grant permissions and generate access code</a></p>
+
+        Auth Code: <input type="text" ng-model="code" />
+        <input class="button" type="submit" ng-click="getToken()" value="Finish" />
+
+        <hr />
+
+        <a href="#" ng-click="update = true">Update existing ReadiotBox</a>
+    </section>
+
+    <section ng-show="update" class="container">
+        <h3>Update existing ReadiotBox</h3>
+        Copy Bookmarklet: <input type="text" ng-model="bookmarklet" />
+        <input class="button" type="submit" ng-click="updateApp()" value="Push updates" />
+
+        <hr />
+
+        <a href="#" ng-click="update = false">Setup new ReadiotBox</a>
+    </section>
 
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
     <script type="text/javascript" src="setupCtrl.js"></script>
