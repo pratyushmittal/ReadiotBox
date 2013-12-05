@@ -16,6 +16,9 @@ app.factory('DropAPI', function($http, $q){
       search:              apiServer  + '/1/search/auto/',
       shares:              apiServer  + '/1/shares/auto/',
       media:               apiServer  + '/1/media/auto/',
+
+      // Data stores.
+      createDb:            apiServer  + '/1/datastores/get_or_create_datastore',
     };
 
     var api = {};
@@ -57,6 +60,14 @@ app.factory('DropAPI', function($http, $q){
         var config = {method: "POST",
                       url: urls.shares + path,
                       params: params};
+        return api.authRequest(config, token);
+    };
+    api.createDb = function(db_name, token){
+        var config = {method: "POST",
+                      url: urls.createDb,
+                      data: {dsid: db_name},
+                      params: {dsid: db_name}
+                     };
         return api.authRequest(config, token);
     };
     return api;
@@ -104,7 +115,7 @@ app.factory('Setup', function(DropAPI, $http){
     return setup;
 });
 
-function SetupCtrl($scope, $http, $window, Setup){
+function SetupCtrl($scope, $http, $window, DropAPI, Setup){
     $scope.getCode = function() {
         var key = $scope.key;
         var domain = 'https://www.dropbox.com';
@@ -162,15 +173,42 @@ function SetupCtrl($scope, $http, $window, Setup){
     var copyCss = function(context){
         var promise = Setup.copy('style.css', $scope.token, context);
         return promise.then(function(url){
-            console.log("Url is");
-            console.log(url);
             context.STYLE = url;
             return copyCtrl(context);
+        }, someError);
+    };
+    var createDb = function(context){
+        var promise = DropAPI.createDb("default", $scope.token, context);
+        return promise.then(function(response){
+            context.HANDLE = response.handle;
+            return copyCss(context);
         }, someError);
     };
     $scope.updateFiles = function() {
         $scope.message = "Setting up...";
         var context = {TOKEN: $scope.token};
-        copyCss(context);
+        createDb(context);
+    };
+    $scope.updateApp = function() {
+        $scope.message = "Finding token";
+        var marklet = $scope.bookmarklet;
+        var stop = marklet.indexOf("parser.js") + 9;
+        var start = marklet.lastIndexOf("https", stop);
+        var parser_path = marklet.substr(start, stop - start);
+        var promise = $http.get(parser_path);
+        promise.then(function(response){
+            var reader = response.data;
+            var j = reader.indexOf("read-control.js") + 15;
+            var i = reader.lastIndexOf("https", j);
+            var path = reader.substr(i, j - i);
+            $http.get(path).then(function(resp){
+                var data = resp.data;
+                var k = data.indexOf("var token = '") + 13;
+                var l = data.indexOf("'", k);
+                var token = data.substr(k, l - k);
+                $scope.token = token;
+                $scope.updateFiles();
+            }, someError);
+        }, someError);
     };
 }

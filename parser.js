@@ -113,13 +113,13 @@ var readability = {
 "<body>" +
     "<div ng-controller='ReadCtrl' class='readiot-container'>" +
         "<div class='readiot-actions'>" +
-            "<a href='" + window.location.href + "'>Original</a>" +
+            "<a url href='" + window.location.href + "'>Original</a>" +
             "<a ng-click='save()'>{{save_status}}</a>" +
             "<a ng-click='highlight_selected()' ng-show='has_selection'>Highlight</a>" +
         "</div>" +
         "<div class='readiot-content'>" +
-            "<h1>" + articleTitle.innerHTML + "</h1>" +
-            "<div ng-mouseup='check_selection()'>" + articleContent.innerHTML + "</div>" +
+            "<h1 title>" + articleTitle.innerHTML + "</h1>" +
+            "<div story ng-mouseup='check_selection()'>" + articleContent.innerHTML + "</div>" +
         "</div>" +
     "</div>" +
 "</body>" +
@@ -127,7 +127,7 @@ var readability = {
 
         document.documentElement.innerHTML = template;
         var head = document.getElementsByTagName('head')[0];
-        var angular = readability.addScript("http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js");
+        var angular = readability.addScript("https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js");
         angular.onload = function() {
             var controllers = readability.addScript("[{ READJS }]");
             head.appendChild(controllers);

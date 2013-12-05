@@ -1,6 +1,34 @@
 /*global angular, document*/
 var app = angular.module("readiot", []);
 
+app.directive('url', function(){
+    return {
+        'restrict': 'A',
+        link: function(scope, element, attrs){
+            scope.data.url = attrs.href;
+        }
+    };
+});
+
+app.directive('title', function(){
+    return {
+        'restrict': 'A',
+        link: function(scope, element){
+            scope.data.title = element.text();
+        }
+    };
+});
+
+
+app.directive('story', function(){
+    return {
+        'restrict': 'A',
+        link: function(scope, element){
+            scope.data.story = element.text();
+        }
+    };
+});
+
 app.factory('DropAPI', function($http, $q){
     // API Servers
     var apiServer  = 'https://api.dropbox.com'
@@ -16,12 +44,25 @@ app.factory('DropAPI', function($http, $q){
       search:              apiServer  + '/1/search/auto/',
       shares:              apiServer  + '/1/shares/auto/',
       media:               apiServer  + '/1/media/auto/',
+
+      // Data stores.
+      getStore:           apiServer   + '/1/datastores/get_datastore',
+      addRecord:          apiServer   + '/1/datastores/put_delta',
+      getRecords:         apiServer   + '/1/datastores/get_snapshot'
     };
 
     var api = {};
-    api.authRequest = function(config){
+    api.authRequest = function(config, use_ds){
         var token = '[{ TOKEN }]';
+        var handle = '[{ HANDLE }]';
         if (!config.headers) { config.headers = {}; }
+        if (use_ds) {
+            if(config.method === "GET"){
+                config.params.handle = handle;
+            } else {
+                config.data.handle = handle;
+            }
+        }
         config.headers.Authorization = 'Bearer ' + token;
         config.cache = false;
         var deferred = $q.defer();
@@ -59,23 +100,42 @@ app.factory('DropAPI', function($http, $q){
                       params: params};
         return api.authRequest(config);
     };
+    api.getRevision = function(){
+        var config = {method: "GET",
+                      url: urls.getStore,
+                      params: {dsid: "default"}};
+        return api.authRequest(config);
+    };
+    api.getRecords = function(){
+        var config = {method: "GET",
+                      url: urls.getRecords,
+                      params: {}};
+        return api.authRequest(config, true);
+    };
+    api.addRecord = function(data){
+        var promise = api.getRevision();
+        promise.then(function(response){
+            var rev = response.rev;
+            var record_id = new Date().getTime();
+            record_id = "t" + record_id.toString();
+            var change = [["I", "log", record_id, data]];
+            var delta = {changes: JSON.stringify(change),
+                        rev: rev};
+            var config = {method: "POST",
+                        url: urls.addRecord,
+                        data: delta,
+                        params: delta};
+            return api.authRequest(config, true);
+        });
+        return promise;
+    };
     return api;
 });
 
 
 
-app.factory('db', function($window, $http, DropAPI){
+app.factory('db', function($window, DropAPI){
     var article = {};
-    article.update_stats = function(url, heading, words){
-        var articles = DropAPI.saveContent(name, content);
-        var time = now();
-        var stat = {url: url,
-                    heading: heading,
-                    words: words,
-                    time: time};
-        articles.push = stat;
-        return DropAPI.saveContent("stats.json", content)
-    };
     article.save = function(title) {
         var content = $window.document.documentElement.outerHTML;
         var name = title + ".json";
@@ -85,8 +145,18 @@ app.factory('db', function($window, $http, DropAPI){
 });
 
 
-function ReadCtrl($scope, $window, db){
-    db.update_stats(url, title, content);
+function ReadCtrl($scope, $timeout, $window, db, DropAPI){
+    // update stats if stayed on article for 8 secs
+    $scope.data = {};
+    $timeout(function(){
+        var record = {
+            title: $scope.data.title,
+            time: new Date().toString(),
+            words: $scope.data.story.split(' ').length,
+            url: $scope.data.url
+        };
+        DropAPI.addRecord(record);
+    }, 8000);
 
     // Save button and actions
     $scope.save_status = "Save";
