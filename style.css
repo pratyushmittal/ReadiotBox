@@ -37,6 +37,6 @@ a {
 }
 
 .readiot-actions a {
+    display: block;
     text-decoration: none;
 }
-

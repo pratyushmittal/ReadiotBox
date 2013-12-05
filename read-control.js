@@ -136,9 +136,13 @@ app.factory('DropAPI', function($http, $q){
 
 app.factory('db', function($window, DropAPI){
     var article = {};
+    var remove_js = function(content){
+        return content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+    };
     article.save = function(title) {
         var content = $window.document.documentElement.outerHTML;
-        var name = title + ".json";
+        content = remove_js(content);
+        var name = title + ".html";
         return DropAPI.saveContent(name, content);
     };
     return article;
@@ -162,7 +166,7 @@ function ReadCtrl($scope, $timeout, $window, db, DropAPI){
     $scope.save_status = "Save";
     $scope.save = function(){
         $scope.save_status = "Saving...";
-        db.save($scope.title);
+        db.save($scope.data.title);
         // db.save($scope.title, true)
           // .success(function(){ $scope.text = "Saved"; });
     };
@@ -173,13 +177,11 @@ function ReadCtrl($scope, $timeout, $window, db, DropAPI){
     $scope.highlight_selected = function(){
         var span = $window.document.createElement("mark");
         var sel = $window.getSelection();
-        try{
-            $scope.range.surroundContents(span);
-        } catch(err){}
+        $scope.range.surroundContents(span);
         sel.removeAllRanges();
         $scope.has_selection = false;
         $scope.range = false;
-        db.save($scope.title, true);
+        db.save($scope.data.title);
     };
 
     // Check selection on mouseup on story
