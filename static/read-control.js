@@ -233,12 +233,9 @@ app.factory('utils', function() {
         "get_page_count": function(articles) {
             var page_count = 0;
             var word_per_page = 200;
-            var i, article_words;
+            var i;
             for (i = 0; i < articles.length;i++) {
-                article_words = parseInt(articles[i].data.words, 10);
-                if(!isNaN(article_words)) {
-                    page_count += articles[i].data.words / word_per_page;
-                }
+                page_count += articles[i].data.words / word_per_page;
             }
             return Math.round(page_count);
         }
@@ -298,13 +295,17 @@ function HomeCtrl($scope, $window, DropAPI, utils) {
         var data = $scope.import_data;
         var rows = data.split(/\r?\n/);
         var db_rows = [];
-        var i, db_row, cells, record_id;
+        var i, db_row, cells, record_id, words;
         for(i = 0; i < rows.length; i++){
             cells = rows[i].split(",");
+            words = parseInt(cells[2], 10);
+            if(!isNaN(words)) {
+                words = 150;
+            }
             db_row = {
                 url: cells[0],
                 title: cells[1],
-                words: cells[2],
+                words: words,
                 time: cells[3],
             };
             record_id = "m" + i + new Date(db_row.time).getTime();
