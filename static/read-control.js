@@ -31,8 +31,8 @@ app.directive('story', function(){
 
 app.factory('DropAPI', function($http, $q){
     // API Servers
-    var apiServer  = 'https://api.dropbox.com'
-      , fileServer = 'https://api-content.dropbox.com';
+    var apiServer  = 'https://api.dropbox.com',
+        fileServer = 'https://api-content.dropbox.com';
     var urls = {
       // Accounts.
       accountInfo:         apiServer  + '/1/account/info',
@@ -227,7 +227,7 @@ app.factory('utils', function() {
                     filtered_list.push(articles[i]);
                 }
             }
-            filtered_list.reverse()
+            filtered_list.reverse();
             return filtered_list;
         },
         "get_page_count": function(articles) {
@@ -295,13 +295,17 @@ function HomeCtrl($scope, $window, DropAPI, utils) {
         var data = $scope.import_data;
         var rows = data.split(/\r?\n/);
         var db_rows = [];
-        var i, db_row, cells, record_id;
+        var i, db_row, cells, record_id, words;
         for(i = 0; i < rows.length; i++){
             cells = rows[i].split(",");
+            words = parseInt(cells[2], 10);
+            if(!isNaN(words)) {
+                words = 150;
+            }
             db_row = {
                 url: cells[0],
                 title: cells[1],
-                words: cells[2],
+                words: words,
                 time: cells[3],
             };
             record_id = "m" + i + new Date(db_row.time).getTime();
