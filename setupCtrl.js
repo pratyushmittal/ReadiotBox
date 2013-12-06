@@ -3,8 +3,8 @@ var app = angular.module("readiot", []);
 
 app.factory('DropAPI', function($http, $q){
     // API Servers
-    var apiServer  = 'https://api.dropbox.com'
-      , fileServer = 'https://api-content.dropbox.com';
+    var apiServer  = 'https://api.dropbox.com',
+        fileServer = 'https://api-content.dropbox.com';
     var urls = {
       // Accounts.
       accountInfo:         apiServer  + '/1/account/info',
@@ -117,12 +117,13 @@ function SetupCtrl($scope, $http, $window, DropAPI, Setup){
         var key = $scope.key;
         var domain = 'https://www.dropbox.com';
         var url = domain + '/1/oauth2/authorize';
-        var codeUrl = url
-                    + '?client_id=' + key
-                    + '&response_type=code';
+        var codeUrl = url +
+                      '?client_id=' + key +
+                      '&response_type=code';
         $scope.code_link = codeUrl;
     };
     $scope.getToken = function() {
+        $scope.message = "Setting up...";
         var key = $scope.key;
         var secret = $scope.secret;
         var code = $scope.code;
