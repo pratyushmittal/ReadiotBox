@@ -1,0 +1,106 @@
+<html>
+<head ng-app="readiot">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <style>
+    @import url(https://fonts.googleapis.com/css?family=Cambo);
+
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        color: #222;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    h1, h2, h3, .logo {
+        font-family: 'Cambo', serif;
+        color: #333;
+    }
+
+    .container {
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 625px;
+    }
+
+    .cover {
+        padding: 0 19px;
+        margin-top: 7%;
+    }
+
+    .cover .logo {
+        font-size: 500%;
+        font-weight: 700;
+    }
+
+    .bookmarklet {
+        padding: 10px;
+        text-decoration: none;
+        background: #eee;
+    }
+
+    .stats {
+        padding: 10px;
+        color: #ddd;
+        font-weight: 700;
+    }
+
+    .archives .fa {
+        color: #ddd;
+    }
+
+    .block {
+        width: 30%;
+        display: inline-block;
+    }
+
+    .block .subject {
+        font-size: 400%;
+    }
+
+    .block .predicate {
+        font-size: 150%;
+    }
+    </style>
+</head>
+<body>
+    <div ng-controller="HomeCtrl" ng-show="has_articles()" class="container">
+    <section class="stats">
+        <p>Pages read:</p>
+        <div class="block" ng-click="get_archives(1)">
+            <span class="subject">{{ today_count }}</span>
+            <span class="predicate">today</span>
+        </div>
+        <div class="block" ng-click="get_archives(7)">
+            <span class="subject">{{ week_count }}</span>
+            <span class="predicate">week</span>
+        </div>
+        <div class="block" ng-click="get_archives(-1)">
+            <span class="subject">{{ total_count }}</span>
+            <span class="predicate">total</span>
+        </div>
+    </section>
+
+    <section ng-show="has_archives()" class="archives">
+        <p ng-repeat="article in archives">
+            <i class="fa fa-share"></i>
+            <a href="{{ article.data.url }}">{{ article.data.title }}</a>
+            <small><i class="fa fa-times"></i></small>
+        </p>
+    </section>
+    </div>
+
+
+    <section class="cover container">
+        <div class="logo">Readiot Box</div>
+        <p>Bookmarklet: <a href="javascript:(function(){ _readability_script=document.createElement('script'); _readability_script.type='text/javascript'; _readability_script.src='[{ PARSER }]'; document.documentElement.appendChild(_readability_script); })();" class="bookmarklet">Readiot</a> <small>(drag this to bookmarks)</small></p>
+    </section>
+
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+    <script type="text/javascript" src="[{ READJS }]"></script>
+
+</body>
+</html>
