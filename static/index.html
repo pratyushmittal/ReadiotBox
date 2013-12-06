@@ -42,9 +42,8 @@
     }
 
     .stats {
-        padding: 10px;
+        padding: 7px;
         color: #ddd;
-        font-weight: 700;
     }
 
     .archives .fa {
@@ -67,6 +66,9 @@
 </head>
 <body>
     <div ng-controller="HomeCtrl" ng-show="has_articles()" class="container">
+
+    <p>{{ message }}</p>
+
     <section class="stats">
         <p>Pages read:</p>
         <div class="block" ng-click="get_archives(1)">
@@ -81,6 +83,17 @@
             <span class="subject">{{ total_count }}</span>
             <span class="predicate">total</span>
         </div>
+        <p><small>
+            <a href="#" ng-click="import_input = true">Import</a> /
+            <a href="#" ng-click="export_db()">Export</a>
+        </small></p>
+    </section>
+
+    <section ng-show="import_input">
+        <p>Paste csv data in <b>url,title,words,time</b></p>
+        <div><textarea rows="8" cols="40" ng-model="import_data"></textarea></div>
+        <input type="submit" ng-click="import_db()" value="Import" />
+        <a href="#" ng-click="import_input = false">Cancel</a>
     </section>
 
     <section ng-show="has_archives()" class="archives">

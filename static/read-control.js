@@ -112,6 +112,20 @@ app.factory('DropAPI', function($http, $q){
                       params: {}};
         return api.authRequest(config, true);
     };
+    api.bulkAdd = function(data){
+        var promise = api.getRevision();
+        promise.then(function(response){
+            var rev = response.rev;
+            var delta = {changes: JSON.stringify(data),
+                        rev: rev};
+            var config = {method: "POST",
+                          url: urls.addRecord,
+                          data: delta,
+                          params: delta};
+            return api.authRequest(config, true);
+        });
+        return promise;
+    };
     api.addRecord = function(data){
         var promise = api.getRevision();
         promise.then(function(response){
@@ -122,9 +136,9 @@ app.factory('DropAPI', function($http, $q){
             var delta = {changes: JSON.stringify(change),
                         rev: rev};
             var config = {method: "POST",
-                        url: urls.addRecord,
-                        data: delta,
-                        params: delta};
+                          url: urls.addRecord,
+                          data: delta,
+                          params: delta};
             return api.authRequest(config, true);
         });
         return promise;
@@ -228,9 +242,10 @@ app.factory('utils', function() {
     };
 });
 
-function HomeCtrl($scope, $http, DropAPI, utils) {
+function HomeCtrl($scope, $window, DropAPI, utils) {
     // Get DB
     $scope.articles = [];
+    $scope.message = "Loading stats";
     DropAPI.getRecords().then(function(response) {
         $scope.articles = response.rows;
         // stats
@@ -239,6 +254,7 @@ function HomeCtrl($scope, $http, DropAPI, utils) {
         $scope.today_count = utils.get_page_count(today);
         $scope.week_count = utils.get_page_count(week);
         $scope.total_count = utils.get_page_count($scope.articles);
+        $scope.message = "";
     });
     $scope.has_articles = function() {
         return $scope.articles.length > 0 ? true : false;
@@ -251,6 +267,49 @@ function HomeCtrl($scope, $http, DropAPI, utils) {
     };
     $scope.has_archives = function() {
         return $scope.archives.length > 0 ? true : false;
+    };
+
+    /* Exports */
+    $scope.export_db = function(){
+        var rows = [];
+        var row, i, key, article;
+        rows.push(Object.keys($scope.articles[0].data).join(','));
+        for (i = 0; i < $scope.articles.length; i++) {
+            row = [];
+            article = $scope.articles[i].data;
+            for (key in article) {
+                if (article.hasOwnProperty(key)){
+                    row.push(article[key]);
+                }
+            }
+            rows.push(row.join(','));
+        }
+        var csvContent = rows.join("\n");
+        var encodedUri = "data:text/csv;charset=utf-8," + encodeURI(csvContent);
+        $window.open(encodedUri);
+    };
+
+    /* Imports */
+    $scope.import_db = function(){
+        $scope.import_input = false;
+        var data = $scope.import_data;
+        var rows = data.split(/\r?\n/);
+        var db_rows = [];
+        var i, db_row, cells, record_id;
+        for(i = 0; i < rows.length; i++){
+            cells = rows[i].split(",");
+            db_row = {
+                url: cells[0],
+                title: cells[1],
+                words: cells[2],
+                time: cells[3],
+            };
+            record_id = "m" + i + new Date(db_row.time).getTime();
+            db_rows.push(["I", "log", record_id, db_row]);
+        }
+        DropAPI.bulkAdd(db_rows).then(function(){
+            $scope.message = "Import complete";
+        });
     };
 }
 
