@@ -86,7 +86,7 @@
     <section ng-show="has_archives()" class="archives">
         <p ng-repeat="article in archives">
             <i class="fa fa-share"></i>
-            <a href="{{ article.url }}">{{ article.heading }}</a>
+            <a href="{{ article.data.url }}">{{ article.data.title }}</a>
             <small><i class="fa fa-times"></i></small>
         </p>
     </section>
