@@ -31,8 +31,8 @@ app.directive('story', function(){
 
 app.factory('DropAPI', function($http, $q){
     // API Servers
-    var apiServer  = 'https://api.dropbox.com'
-      , fileServer = 'https://api-content.dropbox.com';
+    var apiServer  = 'https://api.dropbox.com',
+        fileServer = 'https://api-content.dropbox.com';
     var urls = {
       // Accounts.
       accountInfo:         apiServer  + '/1/account/info',
@@ -227,15 +227,18 @@ app.factory('utils', function() {
                     filtered_list.push(articles[i]);
                 }
             }
-            filtered_list.reverse()
+            filtered_list.reverse();
             return filtered_list;
         },
         "get_page_count": function(articles) {
             var page_count = 0;
             var word_per_page = 200;
-            var i;
+            var i, article_words;
             for (i = 0; i < articles.length;i++) {
-                page_count += articles[i].data.words / word_per_page;
+                article_words = parseInt(articles[i].data.words, 10);
+                if(!isNaN(article_words)) {
+                    page_count += articles[i].data.words / word_per_page;
+                }
             }
             return Math.round(page_count);
         }
