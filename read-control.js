@@ -207,11 +207,13 @@ app.factory('utils', function() {
             var i, article_date;
             var cutoff = new Date().getTime() - days*24*60*60*1000;
             for (i = 0; i < articles.length; i++) {
-                article_date = new Date(articles[i].time).getTime();
+                article_date = articles[i].data.time;
+                article_date = new Date(article_date).getTime();
                 if (article_date > cutoff) {
                     filtered_list.push(articles[i]);
                 }
             }
+            filtered_list.reverse()
             return filtered_list;
         },
         "get_page_count": function(articles) {
@@ -219,26 +221,25 @@ app.factory('utils', function() {
             var word_per_page = 200;
             var i;
             for (i = 0; i < articles.length;i++) {
-                page_count += articles[i].words / word_per_page;
+                page_count += articles[i].data.words / word_per_page;
             }
             return Math.round(page_count);
         }
     };
 });
 
-function HomeCtrl($scope, $http, utils) {
+function HomeCtrl($scope, $http, DropAPI, utils) {
     // Get DB
     $scope.articles = [];
-    $http({"url": "/get_db", "method": "GET"}).success(
-        function(data) {
-            $scope.articles = data;
-            // stats
-            var today = utils.in_period($scope.articles, 1);
-            var week = utils.in_period($scope.articles, 7);
-            $scope.today_count = utils.get_page_count(today);
-            $scope.week_count = utils.get_page_count(week);
-            $scope.total_count = utils.get_page_count($scope.articles);
-        });
+    DropAPI.getRecords().then(function(response) {
+        $scope.articles = response.rows;
+        // stats
+        var today = utils.in_period($scope.articles, 1);
+        var week = utils.in_period($scope.articles, 7);
+        $scope.today_count = utils.get_page_count(today);
+        $scope.week_count = utils.get_page_count(week);
+        $scope.total_count = utils.get_page_count($scope.articles);
+    });
     $scope.has_articles = function() {
         return $scope.articles.length > 0 ? true : false;
     };

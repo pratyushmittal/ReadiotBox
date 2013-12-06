@@ -149,11 +149,18 @@ function SetupCtrl($scope, $http, $window, DropAPI, Setup){
     var someError = function(){
         $scope.message = "Some error occurred";
     };
+    var copyParserAgain = function(context){
+        var promise = Setup.copy('parser.js', $scope.token, context);
+        return promise.then(function(){
+            $window.location.assign(context.INDEX);
+        }, someError);
+    };
     var copyIndex = function(context){
         var promise = Setup.copy('index.html',
             $scope.token, context);
         return promise.then(function(url){
-            $window.location.assign(url);
+            context.INDEX = url;
+            return copyParserAgain(context);
         }, someError);
     };
     var copyParser = function(context){
