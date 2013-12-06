@@ -83,10 +83,6 @@
             <span class="subject">{{ total_count }}</span>
             <span class="predicate">total</span>
         </div>
-        <p><small>
-            <a href="#" ng-click="import_input = true">Import</a> /
-            <a href="#" ng-click="export_db()">Export</a>
-        </small></p>
     </section>
 
     <section ng-show="import_input">
@@ -97,6 +93,10 @@
     </section>
 
     <section ng-show="has_archives()" class="archives">
+        <p><small>
+            <a href="#" ng-click="import_input = true">Import</a> /
+            <a href="#" ng-click="export_db()">Export</a>
+        </small></p>
         <p ng-repeat="article in archives">
             <i class="fa fa-share"></i>
             <a href="{{ article.data.url }}">{{ article.data.title }}</a>
