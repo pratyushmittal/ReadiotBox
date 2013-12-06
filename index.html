@@ -1,9 +1,8 @@
-<html>
-<head ng-app="readiot">
-    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<html ng-app="readiot">
+<head>
+    <title>ReadiotBox Setup</title>
     <style>
     @import url(https://fonts.googleapis.com/css?family=Cambo);
-
     html, body {
         margin: 0;
         padding: 0;
@@ -25,82 +24,88 @@
         max-width: 625px;
     }
 
-    .cover {
+    .logo {
         padding: 0 19px;
         margin-top: 7%;
-    }
-
-    .cover .logo {
+        font-weight: 700;
         font-size: 500%;
-        font-weight: 700;
     }
 
-    .bookmarklet {
-        padding: 10px;
+    input {
+        border: 1px solid #ccc;
+        padding: 5px;
+        width: 300px;
+    }
+    .button {
+        background: #3BAFDA;
+        border: none;
+        color: #fff;
+        font-size: 100%;
+        width: auto;
+    }
+    small a {
+        color: #aaa;
         text-decoration: none;
-        background: #eee;
     }
 
-    .stats {
-        padding: 10px;
+    hr {
+        width: 75px;
         color: #ddd;
-        font-weight: 700;
-    }
-
-    .archives .fa {
-        color: #ddd;
-    }
-
-    .block {
-        width: 30%;
-        display: inline-block;
-    }
-
-    .block .subject {
-        font-size: 400%;
-    }
-
-    .block .predicate {
-        font-size: 150%;
+        background-color: #ddd;
+        margin: 20px;
     }
     </style>
 </head>
-<body>
-    <div ng-controller="HomeCtrl" ng-show="has_articles()" class="container">
-    <section class="stats">
-        <p>Pages read:</p>
-        <div class="block" ng-click="get_archives(1)">
-            <span class="subject">{{ today_count }}</span>
-            <span class="predicate">today</span>
-        </div>
-        <div class="block" ng-click="get_archives(7)">
-            <span class="subject">{{ week_count }}</span>
-            <span class="predicate">week</span>
-        </div>
-        <div class="block" ng-click="get_archives(-1)">
-            <span class="subject">{{ total_count }}</span>
-            <span class="predicate">total</span>
-        </div>
-    </section>
+<body ng-controller="SetupCtrl">
 
-    <section ng-show="has_archives()" class="archives">
-        <p ng-repeat="article in archives">
-            <i class="fa fa-share"></i>
-            <a href="{{ article.data.url }}">{{ article.data.title }}</a>
-            <small><i class="fa fa-times"></i></small>
-        </p>
-    </section>
-    </div>
-
-
-    <section class="cover container">
+    <section class="container">
         <div class="logo">Readiot Box</div>
-        <p>Bookmarklet: <a href="javascript:(function(){ _readability_script=document.createElement('script'); _readability_script.type='text/javascript'; _readability_script.src='[{ PARSER }]'; document.documentElement.appendChild(_readability_script); })();" class="bookmarklet">Readiot</a> <small>(drag this to bookmarks)</small></p>
     </section>
 
+    <section class="container" ng-show="!update">
 
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
-    <script type="text/javascript" src="[{ READJS }]"></script>
 
+        <h3>Step 1: Create a Dropbox app: <small><a href="https://www.dropbox.com/developers/apps/create" target="_blank">https://www.dropbox.com/developers/apps/create</a></small></h3>
+        <p>Dropbox API app >> Files and datastores >> (Private?) Yes</p>
+
+        <div>
+            App Key: <input type="text" ng-model="key" ng-required="True" />
+        </div>
+        <div>
+            App Secret: <input type="text" ng-model="secret" ng-required="True" />
+        </div>
+        <div>
+            <input class="button" type="submit" ng-click="getCode()" value="Submit step 1" />
+        </div>
+
+
+        <hr />
+
+        <h3>Step 2: Generate Token:</h3>
+
+        <p ng-show="code_link"><a href="{{code_link}}" target="_blank">Click to grant permissions and generate access code</a></p>
+
+        Auth Code: <input type="text" ng-model="code" />
+        <input class="button" type="submit" ng-click="getToken()" value="Finish" />
+        <div class="status">{{message}}</div>
+
+        <hr />
+
+        <a href="#" ng-click="update = true">Update existing ReadiotBox</a>
+    </section>
+
+    <section ng-show="update" class="container">
+        <h3>Update existing ReadiotBox</h3>
+        Copy Bookmarklet: <input type="text" ng-model="bookmarklet" />
+        <input class="button" type="submit" ng-click="updateApp()" value="Push updates" />
+        <div class="status">{{message}}</div>
+
+        <hr />
+
+        <a href="#" ng-click="update = false">Setup a new ReadiotBox</a>
+    </section>
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+    <script type="text/javascript" src="setupCtrl.js"></script>
 </body>
 </html>

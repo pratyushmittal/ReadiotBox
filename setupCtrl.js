@@ -101,12 +101,9 @@ app.factory('Setup', function(DropAPI, $http){
         };
         var saveContent = function (response) {
             var content = parseContent(response.data);
-            var name_pos = source.lastIndexOf("/") + 1;
-            var filename = source.substr(name_pos);
-            var destination = "static/" + filename;
-            return DropAPI.saveContent(destination, content, token)
+            return DropAPI.saveContent(source, content, token)
                    .then(function(){
-                       return getLink(destination);
+                       return getLink(source);
                    });
         };
         return $http.get(source, {cache: false})
@@ -150,13 +147,13 @@ function SetupCtrl($scope, $http, $window, DropAPI, Setup){
         $scope.message = "Some error occurred";
     };
     var copyParserAgain = function(context){
-        var promise = Setup.copy('parser.js', $scope.token, context);
+        var promise = Setup.copy('static/parser.js', $scope.token, context);
         return promise.then(function(){
             $window.location.assign(context.INDEX);
         }, someError);
     };
     var copyIndex = function(context){
-        var promise = Setup.copy('index.html',
+        var promise = Setup.copy('static/index.html',
             $scope.token, context);
         return promise.then(function(url){
             context.INDEX = url;
@@ -164,21 +161,21 @@ function SetupCtrl($scope, $http, $window, DropAPI, Setup){
         }, someError);
     };
     var copyParser = function(context){
-        var promise = Setup.copy('parser.js', $scope.token, context);
+        var promise = Setup.copy('static/parser.js', $scope.token, context);
         return promise.then(function(url){
             context.PARSER = url;
             return copyIndex(context);
         }, someError);
     };
     var copyCtrl = function(context){
-        var promise = Setup.copy('read-control.js', $scope.token, context);
+        var promise = Setup.copy('static/read-control.js', $scope.token, context);
         return promise.then(function(url){
             context.READJS = url;
             return copyParser(context);
         }, someError);
     };
     var copyCss = function(context){
-        var promise = Setup.copy('style.css', $scope.token, context);
+        var promise = Setup.copy('static/style.css', $scope.token, context);
         return promise.then(function(url){
             context.STYLE = url;
             return copyCtrl(context);
